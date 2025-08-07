@@ -137,4 +137,11 @@ static const lightColorScheme=ColorScheme(
     color:Colors.grey,
   );
 
+  static const TextStyle productRowItemName = TextStyle(
+  color: Colors.black,
+  fontSize: 16,
+  fontWeight: FontWeight.bold,
+);
+
+
 }

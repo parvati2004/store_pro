@@ -1,88 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:store_pro/product_store/data/product_repo.dart';
 import 'package:store_pro/product_store/model/icecream.dart';
-import 'package:store_pro/product_store/model/product.dart';
 
+const double _salesTaxRate = 0.018;
+const double _shippingCostPerItem = 10;
 
+class AppStateModel extends ChangeNotifier {
+  List<Icecreams> _availableProducts = [];
 
-double _salesTaxRate=0.018;
-double _shippingCostPerItem=10;
-class AppStateModel extends ChangeNotifier  {
+  // Product ID -> Quantity
+  final Map<int, int> _productsInCart = {};
 
-   List<Icecreams> _availableProducts=[];
+  /// Return a copy of the cart
+  Map<int, int> get productsInCart => Map.from(_productsInCart);
 
-  
-  final _productsInCart=<int,int>{};
-  Map<int,int> get productsInCart{
-    return Map.from(_productsInCart);
+  /// Get all available products
+  List<Icecreams> getProducts() => _availableProducts;
+
+  /// Get all cart items with full product info
+  List<Icecreams> getCartItems() {
+    return _productsInCart.keys.map((productId) {
+      return _availableProducts.firstWhere(
+        (product) => product.id == productId,
+        orElse: () => throw Exception('Product ID $productId not found'),
+      );
+    }).toList();
   }
 
-  List<Product> get availableProducts {
-    return List.from(_availableProducts);
-  }
-  int get totalCartQuantity {
-    return _productsInCart.values.fold(0, (sum, val) => sum + val);
+  /// Total quantity in cart
+  int get totalCartQuantity =>
+      _productsInCart.values.fold(0, (sum, val) => sum + val);
+
+  /// Subtotal cost (price * quantity)
+  double get subtotalCost {
+    return _productsInCart.entries.map((entry) {
+      final product = _availableProducts.firstWhere(
+        (p) => p.id == entry.key,
+        orElse: () => throw Exception('Product ID ${entry.key} not found'),
+      );
+      return product.price * entry.value;
+    }).fold(0.0, (sum, val) => sum + val);
   }
 
-  double get subtotalCost{
-    return _productsInCart
-    .keys.map((id)=>_availableProducts[id].price * _productsInCart[id]!)
-    .fold(0, (sum, val) => sum + val);
-  }
-  double get shippingCost{
-    return _shippingCostPerItem *
-     _productsInCart.values.fold(0.0,(sum,val)=>sum*val);
-  }
-  double get tax{
-    return subtotalCost * _salesTaxRate;
-  }
+  /// Shipping cost = $10 per item
+  double get shippingCost =>
+      _shippingCostPerItem * totalCartQuantity.toDouble();
 
-  double get totalcost{
-    return subtotalCost + shippingCost +tax;
-  }
+  /// Tax cost = subtotal * tax rate
+  double get tax => subtotalCost * _salesTaxRate;
 
+  /// Total cost = subtotal + shipping + tax
+  double get totalCost => subtotalCost + shippingCost + tax;
+
+  /// Add product to cart
   void addProductToCart(int productId) {
-    if (_productsInCart.containsKey(productId)) {
-       _productsInCart[productId] = 1;
-    
+    _productsInCart.update(productId, (quantity) => quantity + 1,
+        ifAbsent: () => 1);
+    notifyListeners();
+  }
+
+  /// Remove one quantity of product from cart
+  void removeItemFromCart(int productId) {
+    if (!_productsInCart.containsKey(productId)) return;
+
+    final currentQuantity = _productsInCart[productId]!;
+    if (currentQuantity == 1) {
+      _productsInCart.remove(productId);
     } else {
-        _productsInCart[productId] = _productsInCart[productId]! + 1;
-     
+      _productsInCart[productId] = currentQuantity - 1;
     }
     notifyListeners();
   }
-  void removeItemFromCart(int productId) {
-    if (_productsInCart.containsKey(productId)) {
-     
-      if (_productsInCart[productId] ==  1) {
-        _productsInCart.remove(productId);
-      }
-      else{
-         _productsInCart[productId] = _productsInCart[productId]! - 1;
 
-      }
-    }
-      notifyListeners();
-    }
-  
-
-    void clearCart(){
-      _productsInCart.clear();
-      notifyListeners();
-    }
-
-
-    List<Icecreams> search(String query){
-
-      return _availableProducts.where((product)=>product.flavor.toLowerCase().contains(query.toLowerCase()),
-      )
-      .toList();
-    }
-     Future<void> loadProducts()async{
-
-        _availableProducts= await ProductRepo.loadAllIcecreams();
-        notifyListeners();
-      }
-
+  /// Clear entire cart
+  void clearCart() {
+    _productsInCart.clear();
+    notifyListeners();
   }
 
+  /// Search products by flavor
+  List<Icecreams> search(String query) {
+    return _availableProducts
+        .where((product) =>
+            product.flavor.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  }
+
+  /// Load all products from repository
+  Future<void> loadProducts() async {
+    _availableProducts = await ProductRepo.loadAllIcecreams();
+    notifyListeners();
+  }
+}
