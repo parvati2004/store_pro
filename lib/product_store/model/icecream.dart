@@ -31,6 +31,7 @@ class IceCreamData {
     final dyn = data.toJson();
     return json.encode(dyn);
   }
+  
 }
 
 class Icecreams extends Product {

@@ -27,7 +27,10 @@ dev_dependencies:
   very_good_analysis: ^9.0.0
 
 flutter:
-  generate: true
   uses-material-design: true
-assets:
-  - assets/icecreams.json
+
+  assets:
+    - assets/icecreams.json
+
+
+

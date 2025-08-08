@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:store_pro/themes/styles.dart';
 
 class MySearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
+  
 
   const MySearchBar({
-    Key? key,
+  
     required this.controller,
     required this.focusNode,
-  }) : super(key: key);
+    super.key,
+  }) ;
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +21,7 @@ class MySearchBar extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
