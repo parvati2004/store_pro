@@ -1,7 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import 'package:store_pro/product_store/model/app_state_model.dart';
+import 'package:store_pro/themes/styles.dart';
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
@@ -16,8 +19,8 @@ String? name;
 String? email;
 String? mobile;
 String? address;
-String? pin;
 DateTime? dateTime=DateTime.now();
+final formKey = GlobalKey<FormState>();
 
 Widget _buildName(){
   return TextFormField(
@@ -86,7 +89,7 @@ Widget _buildMobile(){
        return null;
     },
    onSaved: (String? value){
-    mobile:value;
+    mobile=value;
    },
 
     onChanged: (value)=>setState(()=>mobile=value),
@@ -116,6 +119,61 @@ Widget _buildMobile(){
     );
   }
 
+  Widget _buildTimePicker(){
+    return InkWell(
+      onTap:()async{
+         final newTime= await showDatePicker (
+        context: context,
+          initialDate:dateTime,
+           firstDate:DateTime.now(), 
+           lastDate: DateTime(2025
+          ),
+          
+          );
+      if(newTime!=null && newTime!=dateTime){
+        setState(() {
+          dateTime = newTime;
+        });
+      }
+      },
+      child: Column(
+        children:<Widget> [
+        
+          Row(
+      
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children:<Widget> [
+              const Row(
+                children: <Widget> [
+              Icon(
+                Ionicons.time_outline,
+                size:28,
+              ),
+              SizedBox(width:6),
+              Text('Delivery time',
+              style:Styles.deliveryTimeLabel,
+      
+              )
+            ],
+            ),
+            Text(
+              DateFormat.yMMMd().add_jm().format(dateTime!),
+              style: Styles.deliveryTime,
+      
+            )
+        ],
+      ),
+      
+      ]
+      ),
+    );
+
+  }
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,13 +184,25 @@ Widget _buildMobile(){
         builder: (context,value,child){
           return ListView(
             children: [
-              _buildName(),
-              _buildEmail(),
-              _buildMobile(),
-              _buildAddress(),
+              ExpansionTile(title: Text("Address Detail"),
+              children:[
+              Form(
+
+
+              ],
+              ),
+              const Divider(),
+              if(value.productsInCart.isNotEmpty)
+              ListView.builder(
+                itemBuilder:(context,index){
+                  return CartItem();
+                },
+                itemCount:value.productsInCart.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+              )
+             
             ],
-
-
           );
 
         },

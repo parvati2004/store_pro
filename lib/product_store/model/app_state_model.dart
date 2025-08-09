@@ -6,6 +6,13 @@ const double _salesTaxRate = 0.018;
 const double _shippingCostPerItem = 10;
 
 class AppStateModel extends ChangeNotifier {
+
+  int currentIndex = 0;
+
+   void changeIndex(int index) {
+    currentIndex = index;
+    notifyListeners();
+  }
   List<Icecreams> _availableProducts = [];
 
   // Product ID -> Quantity
